@@ -7,4 +7,5 @@ typedef struct _canvas{
 }_canvas;
 
 _canvas* Canvas_Init(int, int);
+void Canvas_Update(_canvas*, int, int);
 void Canvas_Draw(_canvas*);

@@ -20,11 +20,15 @@ _canvas* Canvas_Init(int rows, int cols){
 	return canvas;
 }
 
+void Canvas_Update(_canvas* canvas, int row, int col){
+	canvas->matrix[row][col] = ' ';
+}
+
 
 void Canvas_Draw(_canvas* canvas){
-	printf("rows: %d\n", canvas->rows);
-	printf("cols: %d\n", canvas->cols);
-	printf("\"%c\"\n", canvas->matrix[0][0]);
+	/*printf("rows: %d\n", canvas->rows);*/
+	/*printf("cols: %d\n", canvas->cols);*/
+	/*printf("\"%c\"\n", canvas->matrix[0][0]);*/
 
 	for(int i = 0; i < canvas->rows; i++){
 		for(int j = 0; j < canvas->cols; j++){
