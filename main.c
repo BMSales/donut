@@ -1,35 +1,27 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <time.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
 
 #include "canvas.h"
 
-#define NANOSECOND_MULTIPLIER 1000000 // 1 millisecond = 1.000.000 nanoseconds
+int main(){
 
-int main()
-{
-    struct timespec time;
-    time.tv_sec = 0;
-    time.tv_nsec = 16 * NANOSECOND_MULTIPLIER;
-
-    struct winsize w;
+    // retrieves the terminal's dimensions
+    struct winsize window;
     // w.ws_row for rows
     // w.ws_col for collumns
-    ioctl(STDIN_FILENO, TIOCGWINSZ, &w);
+    ioctl(STDIN_FILENO, TIOCGWINSZ, &window);
 
-    //_canvas* canvas = Canvas_Init(50, 189);
-    _canvas* canvas = Canvas_Init(w.ws_row, w.ws_col);
+    _canvas* canvas = Canvas_Init(window.ws_row, window.ws_col);
 
-    int i = 0;
     while(1){
-	Canvas_Update(canvas, 10, i);
-	Canvas_Draw(canvas);
-	nanosleep(&time, NULL);
-	system("clear");
-	i = (i + 1) % w.ws_col;
+	Canvas_Draw_Sphere(canvas, x, y, 50);
+	Canvas_Display(canvas);
+	usleep(16*1000);
+	printf("\e[1:1H\e[2J");
     }
-    
-    return(0);
+
 }
