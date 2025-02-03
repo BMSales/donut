@@ -7,5 +7,6 @@ typedef struct _canvas{
 }_canvas;
 
 _canvas* Canvas_Init(int, int);
-void Canvas_Draw_Sphere(_canvas*, float, float, float);
+void Canvas_Draw_Sphere(_canvas*, float, float);
+void Canvas_Draw_Circle(_canvas*, float, float, float);
 void Canvas_Display(_canvas*);

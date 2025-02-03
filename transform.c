@@ -24,15 +24,14 @@ _persProj* Pers_Proj_Init(float fov_angle, float screen_height, float screen_wid
 }
 
 float* Pers_Proj_Transform(_persProj* matrix, float x, float y, float z){
-	float* output = (float*)calloc(2, sizeof(float));
-	float z_thing = 0.0;
+	float* output = (float*)calloc(3, sizeof(float));
 
 	output[0] = x * matrix->matrix[0][0];
 	output[1] = y * matrix->matrix[1][1];
-	z_thing = z * matrix->matrix[2][2] + matrix->matrix[2][3];
+	output[2] = z * matrix->matrix[2][2] + matrix->matrix[2][3];
 
-	output[0] /= z_thing;
-	output[1] /= z_thing;
+	output[0] /= output[2];
+	output[1] /= output[2];
 
 	return output;
 }
