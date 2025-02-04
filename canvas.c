@@ -91,35 +91,38 @@ void Shade_Pixel(_canvas* canvas, int x, int y, float one_over_z, float luminanc
 /*	free(matrix);*/
 /*}*/
 /**/
-/*void Canvas_Draw_Circle(_canvas* canvas, float radius, float offset, float phi){*/
-/*	_persProj* matrix = Pers_Proj_Init(60.0f, (float)canvas->rows, (float)canvas->cols, 1.0f, 1000.0f);*/
-/*	float* output = NULL;*/
-/**/
-/*	float x, y, z;*/
-/*	float luminance;*/
-/**/
-/*	int pos_x, pos_y;*/
-/**/
-/*	for(float theta = 0.0; theta < 360.0; theta += 0.5){*/
-/*		x = radius * cos(theta) * cos(phi);*/
-/*		y = radius * sin(theta);*/
-/*		z = -(radius * cos(theta)) * sin(phi) + offset;*/
-/**/
-/*		luminance = - sin(theta) - cos(theta) * sin(phi);*/
-/**/
-/*		output = Pers_Proj_Transform(matrix, x, y, z);*/
-/**/
-/*		pos_x = ((output[0] + 1.0) / 2.0) * canvas->cols;*/
-/*		pos_y = ((output[1] + 1.0) / 2.0) * canvas->rows;*/
-/**/
-/*		if(pos_x < canvas->cols && pos_y < canvas->rows && pos_x >= 0.0 && pos_y >= 0.0){*/
-/*			if(canvas->matrix[pos_y][pos_x] == ' '){*/
-/*				Shade_Pixel(canvas, pos_x, pos_y, luminance);*/
-/*			}*/
-/*		}*/
-/*	}*/
-/*	free(matrix);*/
-/*}*/
+
+void Canvas_Draw_Circle(_canvas* canvas, float radius, float offset, float phi){
+	_persProj* matrix = Pers_Proj_Init(30.0f, (float)canvas->rows, (float)canvas->cols, 1.0f, 1000.0f);
+	float* output = NULL;
+
+	float x, y, z;
+	float one_over_z;
+	float luminance;
+
+	int pos_x, pos_y;
+
+	for(float theta = 0.0; theta < 2 * M_PI; theta += 0.07){
+		x = radius * cos(theta) * cos(phi);
+		y = radius * sin(theta);
+		z = -(radius * cos(theta)) * sin(phi) + offset;
+
+		luminance = - sin(theta) - cos(theta) * sin(phi);
+
+		output = Pers_Proj_Transform(matrix, x, y, z);
+
+		pos_x = ((output[0] + 1.0) / 2.0) * canvas->cols;
+		pos_y = ((output[1] + 1.0) / 2.0) * canvas->rows;
+		one_over_z = 1/z;
+
+		if(pos_x < canvas->cols && pos_y < canvas->rows && pos_x >= 0.0 && pos_y >= 0.0){
+			if(canvas->matrix[pos_y][pos_x] == ' '){
+				Shade_Pixel(canvas, pos_x, pos_y, one_over_z, luminance);
+			}
+		}
+	}
+	free(matrix);
+}
 
 
 void Canvas_Draw_Donut(_canvas* canvas, float radius, float offset, float angle_a, float angle_b){
@@ -145,7 +148,7 @@ void Canvas_Draw_Donut(_canvas* canvas, float radius, float offset, float angle_
 	for(float phi = 0.0; phi < 2.0 * M_PI; phi += 0.02){
 		cos_phi = cos(phi);
 		sin_phi = sin(phi);
-		for(float theta = 0.0; theta < 2.0 * M_PI; theta += 0.07){
+		for(float theta = 0.0; theta < 2 * M_PI; theta += 0.07){
 			cos_theta = cos(theta);
 			sin_theta = sin(theta);
 
@@ -156,14 +159,19 @@ void Canvas_Draw_Donut(_canvas* canvas, float radius, float offset, float angle_
 			y = -helper_1 * sin_phi * cos_b - helper_1 * cos_phi * sin_a * sin_b + helper_2 * cos_a * sin_b;
 			z = helper_1 * sin_phi * sin_b - helper_1 * cos_phi * sin_a * cos_b + helper_2 * cos_a * cos_b + offset;
 
-			luminance = cos_theta * sin_phi * cos_b + cos_theta * cos_phi * sin_a * sin_b - sin_theta * cos_a * sin_b + 
-				cos_theta * sin_phi * sin_b - cos_theta * cos_phi * sin_a * cos_b + sin_theta * cos_a * cos_b;
+			luminance = cos_theta * sin_phi * cos_b + cos_theta * cos_phi * sin_a * sin_b - sin_theta * cos_a * sin_b - 
+				cos_theta * sin_phi * sin_b + cos_theta * cos_phi * sin_a * cos_b - sin_theta * cos_a * cos_b;
 
 			output = Pers_Proj_Transform(matrix, x, y, z);
 
 			pos_x = ((output[0] + 1.0) / 2.0) * canvas->cols;
 			pos_y = ((output[1] + 1.0) / 2.0) * canvas->rows;
-			one_over_z = z;
+			one_over_z = 1/z;
+
+			/*printf("x: %f\n", x);*/
+			/*printf("y: %f\n", y);*/
+			/*printf("z: %f\n", z);*/
+			/*printf("one_over_z: %f\n\n", one_over_z);*/
 
 			if(pos_x < canvas->cols && pos_y < canvas->rows && pos_x >= 0.0 && pos_y >= 0.0){
 				//canvas->matrix[pos_y][pos_x] = '.';
@@ -181,6 +189,7 @@ void Canvas_Draw_Donut(_canvas* canvas, float radius, float offset, float angle_
 	/*}*/
 
 	free(matrix);
+	/*exit(-1);*/
 }
 
 void Canvas_Display(_canvas* canvas){
