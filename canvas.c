@@ -148,7 +148,7 @@ void Canvas_Draw_Donut(_canvas* canvas, float radius, float offset, float angle_
 	for(float phi = 0.0; phi < 2.0 * M_PI; phi += 0.02){
 		cos_phi = cos(phi);
 		sin_phi = sin(phi);
-		for(float theta = 0.0; theta < 2 * M_PI; theta += 0.07){
+		for(float theta = 0.0; theta < 2 * M_PI; theta += 0.05){
 			cos_theta = cos(theta);
 			sin_theta = sin(theta);
 
@@ -168,34 +168,21 @@ void Canvas_Draw_Donut(_canvas* canvas, float radius, float offset, float angle_
 			pos_y = ((output[1] + 1.0) / 2.0) * canvas->rows;
 			one_over_z = 1/z;
 
-			/*printf("x: %f\n", x);*/
-			/*printf("y: %f\n", y);*/
-			/*printf("z: %f\n", z);*/
-			/*printf("one_over_z: %f\n\n", one_over_z);*/
+			
 
 			if(pos_x < canvas->cols && pos_y < canvas->rows && pos_x >= 0.0 && pos_y >= 0.0){
-				//canvas->matrix[pos_y][pos_x] = '.';
 				Shade_Pixel(canvas, pos_x, pos_y, one_over_z, luminance);
 			}
 			free(output);
 		}
 	}
 
-	/*for(int i = 0; i < canvas->rows; i++){*/
-	/*	for(int j = 0; j < canvas->cols; j++){*/
-	/*		printf("%f ", canvas->z_buffer[i][j]);*/
-	/*	}*/
-	/*	printf("\n");*/
-	/*}*/
+	
 
 	free(matrix);
-	/*exit(-1);*/
 }
 
 void Canvas_Display(_canvas* canvas){
-	/*printf("rows: %d\n", canvas->rows);*/
-	/*printf("cols: %d\n", canvas->cols);*/
-	/*printf("\"%c\"\n", canvas->matrix[0][0]);*/
 
 	for(int i = 0; i < canvas->rows; i++){
 		for(int j = 0; j < canvas->cols; j++){
