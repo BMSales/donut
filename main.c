@@ -6,6 +6,7 @@
 #include <sys/ioctl.h>
 
 #include "canvas.h"
+#include "shape.h"
 
 int main(){
     srand(clock());
@@ -17,19 +18,22 @@ int main(){
     ioctl(STDIN_FILENO, TIOCGWINSZ, &window);
 
     _canvas* canvas = Canvas_Init(window.ws_row, window.ws_col);
+    printf("I got here\n");
+    _shape* sphere = Shape_Create_Sphere(100.0);
 
-    float radius = 1.0;
-    float offset = 15.0;
-    float angle_a = 0.0;
-    float angle_b = 0.0;
+    float center_x = 0.0;
+    float center_y = 0.0;
+    float center_z = 0.0;
 
     while(1){
-	Canvas_Draw_Donut(canvas, radius, offset, angle_a, angle_b);
+	Canvas_Draw_Shape(canvas, sphere, center_x, center_y, center_z);
 	Canvas_Display(canvas);
 	usleep(16*1000);
 	system("clear");
-	angle_a -= 0.02;
-	angle_b -= 0.02;
+	center_z += 0.05;
     }
+    /*usleep(16*1000);*/
+    //system("clear");
 
+    return 0;
 }

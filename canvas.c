@@ -3,7 +3,7 @@
 #include <math.h>
 
 #include "canvas.h"
-#include "transform.h"
+#include "shape.h"
 
 #define M_PI 3.14159265358979323846
 
@@ -14,15 +14,26 @@ _canvas* Canvas_Init(int rows, int cols){
 	canvas->cols = cols;
 	canvas->matrix = (char**)calloc(rows, sizeof(char*));
 	canvas->z_buffer = (float**)calloc(rows, sizeof(float*));
-
 	for(int i = 0; i < rows; i++){
 		canvas->matrix[i] = (char*)calloc(cols, sizeof(char));
 		canvas->z_buffer[i] = (float*)calloc(cols, sizeof(float));
 		for(int j = 0; j < cols; j++){
 			canvas->matrix[i][j] = ' ';
-			canvas->z_buffer[i][j] = 0.0;
 		}
 	}
+
+	canvas->fov_angle = 30.0f;
+	canvas->z_near = 1.0f;
+	canvas->z_far = 1000.0f;
+
+	float aspect_ratio = (float)cols/(float)rows;
+	float z_range = canvas->z_near - canvas->z_far;
+	float tan_half_fov = tanf((canvas->fov_angle * M_PI/180.0f)/2.0f);
+
+	canvas->pers_proj[0] = 1.0f / (tan_half_fov * aspect_ratio);
+	canvas->pers_proj[1] = 1.0f / tan_half_fov;
+	canvas->pers_proj[2] = (- canvas->z_near - canvas->z_far)/z_range;
+	canvas->pers_proj[3] = 2.0f * canvas->z_far * canvas->z_near/z_range;
 
 	return canvas;
 }
@@ -32,6 +43,8 @@ void Canvas_Destroy(_canvas* canvas){
 		free(canvas->matrix[i]);
 		free(canvas->z_buffer[i]);
 	}
+	free(canvas->matrix);
+	free(canvas->z_buffer);
 	free(canvas);
 }
 
@@ -44,156 +57,80 @@ void Canvas_Reset(_canvas* canvas){
 	}
 }
 
-void Shade_Pixel(_canvas* canvas, int x, int y, float one_over_z, float luminance){
-	if(luminance > 0){
-		if(one_over_z > canvas->z_buffer[y][x]){
-			canvas->z_buffer[y][x] = one_over_z;
-			int L = luminance * 8;
-			char index[12] = ".,-~;:=!*#$@";
-			canvas->matrix[y][x] = index[L];
+void Canvas_PersProj_Update(_canvas* canvas, float fov_angle, float z_near, float z_far){
+	float aspect_ratio = (float)canvas->cols/(float)canvas->rows;
+	float z_range = z_near - z_far;
+	float tan_half_fov = tanf((fov_angle * M_PI/180.f)/2.0f);
+
+	canvas->fov_angle = fov_angle;
+	canvas->z_near = z_near;
+	canvas->z_far = z_far;
+
+	canvas->pers_proj[0] = 1.0f / (tan_half_fov * aspect_ratio);
+	canvas->pers_proj[1] = 1.0f / tan_half_fov;
+	canvas->pers_proj[2] = (- z_near - z_far)/z_range;
+	canvas->pers_proj[3] = 2.0f * z_far * z_near/z_range;
+}
+
+void Canvas_Matrix_Update(_canvas* canvas, int rows, int cols){
+	for(int i = 0; i < canvas->rows; i++){
+		free(canvas->matrix[i]);
+		free(canvas->z_buffer[i]);
+	}
+	free(canvas->matrix);
+	free(canvas->z_buffer);
+
+	canvas->matrix = (char**)calloc(rows, sizeof(char*));
+	canvas->z_buffer = (float**)calloc(rows, sizeof(float*));
+
+	for(int i = 0; i < rows; i++){
+		canvas->matrix[i] = (char*)calloc(cols, sizeof(char));
+		canvas->z_buffer[i] = (float*)calloc(cols, sizeof(float));
+		for(int j = 0; j < cols; j++){
+			canvas->matrix[i][j] = ' ';
+		}
+	}
+
+	Canvas_PersProj_Update(canvas, canvas->fov_angle, canvas->z_near, canvas->z_far);
+}
+
+void Shade_Pixel(_canvas* canvas, float proj_x, float proj_y){
+	int pos_x = ((proj_x + 1.0) / 2.0) * canvas->cols;
+	int pos_y = ((proj_y + 1.0) / 2.0) * canvas->rows;
+
+	if(pos_x < canvas->cols && pos_y < canvas->rows && pos_x >= 0.0 && pos_y >= 0.0){
+		if(canvas->matrix[pos_y][pos_x] == ' '){
+			canvas->matrix[pos_y][pos_x] = '.';
 		}
 	}
 }
 
-void Canvas_Draw_Sphere(_canvas* canvas, float radius, float offset){
-	_persProj* matrix = Pers_Proj_Init(30.0f, (float)canvas->rows, (float)canvas->cols, 1.0f, 1000.0f);
-	float* output = NULL;
+void Canvas_Draw_Point(_canvas* canvas, float x, float y, float z){
+	float proj_x, proj_y, proj_z;
 
-	float x, y, z;
-	float one_over_z;
-	float luminance;
+	proj_x = x * canvas->pers_proj[0];
+	proj_y = y * canvas->pers_proj[1];
+	proj_z = z * canvas->pers_proj[2] + canvas->pers_proj[3];
 
-	float sin_theta, cos_theta;
-	float sin_phi, cos_phi;
+	proj_x /= proj_z;
+	proj_y /= proj_z;
 
-	int pos_x, pos_y;
-
-	for(float phi = 0.0; phi < 2 * M_PI; phi += 0.05){
-		cos_phi = cos(phi);
-		sin_phi = sin(phi);
-		for(float theta = 0.0; theta < 2 * M_PI; theta += 0.05){
-			cos_theta = cos(theta);
-			sin_theta = sin(theta);
-
-			x = 2 * radius * cos_theta * cos_phi;
-			y = radius * sin_theta;
-			z = -(radius * cos_theta) * sin_phi + offset;
-
-			luminance = -sin_theta + cos_theta * sin_phi;
-
-			output = Pers_Proj_Transform(matrix, x, y, z);
-
-			pos_x = ((output[0] + 1.0) / 2.0) * canvas->cols;
-			pos_y = ((output[1] + 1.0) / 2.0) * canvas->rows;
-			one_over_z = 1/z;
-
-			if(pos_x < canvas->cols && pos_y < canvas->rows && pos_x >= 0.0 && pos_y >= 0.0){
-				Shade_Pixel(canvas, pos_x, pos_y, one_over_z, luminance);
-			}
-			free(output);
-		}
-	}
-
-	free(matrix);
+	Shade_Pixel(canvas, proj_x, proj_y);
 }
 
-void Canvas_Draw_Circle(_canvas* canvas, float radius, float offset, float phi){
-	_persProj* matrix = Pers_Proj_Init(30.0f, (float)canvas->rows, (float)canvas->cols, 1.0f, 1000.0f);
-	float* output = NULL;
-
-	float x, y, z;
-	float one_over_z;
-	float luminance;
-
-	int pos_x, pos_y;
-
-	for(float theta = 0.0; theta < 2 * M_PI; theta += 0.07){
-		x = radius * cos(theta) * cos(phi);
-		y = radius * sin(theta);
-		z = -(radius * cos(theta)) * sin(phi) + offset;
-
-		luminance = - sin(theta) - cos(theta) * sin(phi);
-
-		output = Pers_Proj_Transform(matrix, x, y, z);
-
-		pos_x = ((output[0] + 1.0) / 2.0) * canvas->cols;
-		pos_y = ((output[1] + 1.0) / 2.0) * canvas->rows;
-		one_over_z = 1/z;
-
-		if(pos_x < canvas->cols && pos_y < canvas->rows && pos_x >= 0.0 && pos_y >= 0.0){
-			if(canvas->matrix[pos_y][pos_x] == ' '){
-				Shade_Pixel(canvas, pos_x, pos_y, one_over_z, luminance);
-			}
-		}
+void Canvas_Draw_Shape(_canvas* canvas, _shape* shape, float center_x, float center_y, float center_z){
+	for(int i = 0; i < shape->number_of_points; i++){
+		Point_Offset(shape->point[i], center_x, center_y, center_z);
+		Canvas_Draw_Point(canvas, shape->point[i][0], shape->point[i][1], shape->point[i][2]);
 	}
-	free(matrix);
-}
-
-
-void Canvas_Draw_Donut(_canvas* canvas, float radius, float offset, float angle_a, float angle_b){
-	_persProj* matrix = Pers_Proj_Init(30.0f, (float)canvas->rows, (float)canvas->cols, 1.0f, 1000.0f);
-	float* output = NULL;
-
-	float x, y, z;
-	float one_over_z;
-	float helper_1, helper_2;
-	float luminance;
-	float radius_2 = 2.0 * radius;
-
-	float cos_a = cos(angle_a);
-	float sin_a = sin(angle_a);
-	float cos_b = cos(angle_b);
-	float sin_b = sin(angle_b);
-
-	float sin_theta, cos_theta;
-	float sin_phi, cos_phi;
-
-	int pos_x, pos_y;
-
-	for(float phi = 0.0; phi < 2.0 * M_PI; phi += 0.02){
-		cos_phi = cos(phi);
-		sin_phi = sin(phi);
-		for(float theta = 0.0; theta < 2 * M_PI; theta += 0.05){
-			cos_theta = cos(theta);
-			sin_theta = sin(theta);
-
-			helper_1 = radius_2 + radius * cos_theta;
-			helper_2 = radius * sin_theta;
-			
-			x = helper_1 * cos_phi * cos_a + helper_2 * sin_a;
-			y = -helper_1 * sin_phi * cos_b - helper_1 * cos_phi * sin_a * sin_b + helper_2 * cos_a * sin_b;
-			z = helper_1 * sin_phi * sin_b - helper_1 * cos_phi * sin_a * cos_b + helper_2 * cos_a * cos_b + offset;
-
-			luminance = cos_theta * sin_phi * cos_b + cos_theta * cos_phi * sin_a * sin_b - sin_theta * cos_a * sin_b - 
-				cos_theta * sin_phi * sin_b + cos_theta * cos_phi * sin_a * cos_b - sin_theta * cos_a * cos_b;
-
-			output = Pers_Proj_Transform(matrix, x, y, z);
-
-			pos_x = ((output[0] + 1.0) / 2.0) * canvas->cols;
-			pos_y = ((output[1] + 1.0) / 2.0) * canvas->rows;
-			one_over_z = 1/z;
-
-			
-
-			if(pos_x < canvas->cols && pos_y < canvas->rows && pos_x >= 0.0 && pos_y >= 0.0){
-				Shade_Pixel(canvas, pos_x, pos_y, one_over_z, luminance);
-			}
-			free(output);
-		}
-	}
-
-	
-
-	free(matrix);
 }
 
 void Canvas_Display(_canvas* canvas){
-
 	for(int i = 0; i < canvas->rows; i++){
 		for(int j = 0; j < canvas->cols; j++){
 			printf("%c", canvas->matrix[i][j]);
+			canvas->matrix[i][j] = ' ';
 		}
 		printf("\n");
 	}
-	Canvas_Reset(canvas);
 }
