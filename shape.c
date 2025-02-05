@@ -46,27 +46,38 @@ void Point_Offset(float* point, float x_offset, float y_offset, float z_offset){
 	point[2] += z_offset;
 }
 
-_shape* Shape_Create_Sphere(float radius){
+/*void Shape_Display_Points(_shape* shape){*/
+/*	for(int i = 0; i < shape->number_of_points; i++){*/
+/*	}*/
+/*}*/
+
+_shape* Shape_Create_Sphere(int point_limit, float radius){
 	_shape* sphere = Shape_Init();
-	float point_limit = 10000.0;
-	float step_size = point_limit / 360.0;
-	int index = 0;
+	float theta;
+	float phi = M_PI * (sqrt(5.0) - 1.0);
+	float x, y, z;
+	float radius_draw;
 
 	sphere->point = (float**)calloc(point_limit, sizeof(float*));
 	for(int i = 0; i < point_limit; i++){
 		sphere->point[i] = (float*)calloc(3, sizeof(float));
 	}
 
-	for(float phi = 0.0; phi < 2.0 * M_PI && index < point_limit; phi += 0.02){
-		for(float theta = 0.0; theta < 2 * M_PI && index < point_limit; theta += 2 * M_PI/step_size){
-			sphere->point[index][0] = radius * cos(theta);
-			sphere->point[index][1] = radius * sin(theta);
-			sphere->point[index][2] = 0.0;
+	//drawn using the fibonacci sphere algorithm
+	for(int i = 0; i < point_limit; i++){
+		y = 1.0 - ((float)i / ((float)point_limit - 1.0)) * 2.0;
+		radius_draw = sqrt(1.0 - y * y);
 
-			Point_Rotate_Y(sphere->point[index], phi);
-			index++;
-			sphere->number_of_points++;
-		}
+		theta = phi * i;
+
+		x = cos(theta) * radius_draw;
+		z = sin(theta) * radius_draw;
+
+		sphere->point[i][0] = x * radius;
+		sphere->point[i][1] = y * radius;
+		sphere->point[i][2] = z * radius;
+
+		sphere->number_of_points++;
 	}
 
 	return sphere;

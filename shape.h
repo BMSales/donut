@@ -11,4 +11,4 @@ void Point_Rotate_Z(float*, float);
 
 void Point_Offset(float*, float, float, float);
 
-_shape* Shape_Create_Sphere(float);
+_shape* Shape_Create_Sphere(int, float);

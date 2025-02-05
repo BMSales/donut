@@ -120,8 +120,7 @@ void Canvas_Draw_Point(_canvas* canvas, float x, float y, float z){
 
 void Canvas_Draw_Shape(_canvas* canvas, _shape* shape, float center_x, float center_y, float center_z){
 	for(int i = 0; i < shape->number_of_points; i++){
-		Point_Offset(shape->point[i], center_x, center_y, center_z);
-		Canvas_Draw_Point(canvas, shape->point[i][0], shape->point[i][1], shape->point[i][2]);
+		Canvas_Draw_Point(canvas, shape->point[i][0] + center_x, shape->point[i][1] + center_y, shape->point[i][2] + center_z);
 	}
 }
 
