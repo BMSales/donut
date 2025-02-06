@@ -19,10 +19,11 @@ int main(){
 
     _canvas* canvas = Canvas_Init(window.ws_row, window.ws_col);
     _shape* torus = Shape_Create_Torus(3*360*90, 10, 20);
+    /*_shape* sphere = Shape_Create_Sphere(100000, 50);*/
 
     float center_x = 0.0;
     float center_y = 0.0;
-    float center_z = 150.0;
+    float center_z = 0.0;
 
     float angle_x = 0.01;
     float angle_y = 0.03;
@@ -34,6 +35,7 @@ int main(){
 	Canvas_Display(canvas);
 	usleep(16*1000);
 	system("clear");
+	center_z += 0.1;
     }
     /*usleep(16*1000);*/
     //system("clear");

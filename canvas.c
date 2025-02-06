@@ -23,8 +23,8 @@ _canvas* Canvas_Init(int rows, int cols){
 	}
 
 	canvas->light[0] = 0;
-	canvas->light[1] = -1.0;
-	canvas->light[2] = -1.0;
+	canvas->light[1] = -1.0/sqrt(2);
+	canvas->light[2] = -1.0/sqrt(2);
 
 	canvas->fov_angle = 30.0f;
 	canvas->z_near = 1.0f;
@@ -107,7 +107,7 @@ void Shade_Pixel(_canvas* canvas, float proj_x, float proj_y, float one_over_z, 
 		if(luminance > 0.0){
 			if(one_over_z > canvas->z_buffer[pos_y][pos_x]){
 				canvas->z_buffer[pos_y][pos_x] = one_over_z;
-				canvas->matrix[pos_y][pos_x] = gradient[(int)(luminance * 8)];
+				canvas->matrix[pos_y][pos_x] = gradient[(int)(luminance * 12)];
 			}
 		}
 	}
