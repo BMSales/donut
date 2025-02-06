@@ -9,7 +9,6 @@
 #include "shape.h"
 
 int main(){
-    srand(clock());
 
     // retrieves the terminal's dimensions
     struct winsize window;
@@ -37,8 +36,5 @@ int main(){
 	system("clear");
 	center_z += 0.1;
     }
-    /*usleep(16*1000);*/
-    //system("clear");
-
     return 0;
 }
