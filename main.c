@@ -18,7 +18,7 @@ int main(){
     ioctl(STDIN_FILENO, TIOCGWINSZ, &window);
 
     _canvas* canvas = Canvas_Init(window.ws_row, window.ws_col);
-    _shape* torus = Shape_Create_Torus(5000, 5.0, 10.0);
+    _shape* torus = Shape_Create_Torus(100000, 5.0, 10.0);
 
     float center_x = 0.0;
     float center_y = 0.0;

@@ -86,7 +86,6 @@ _shape* Shape_Create_Sphere(int point_limit, float radius){
 _shape* Shape_Create_Torus(int point_limit, float radius_1, float radius_2){
 	_shape* torus = Shape_Init();
 	float step_size = (360.0f / sqrt((float)point_limit)) * M_PI/180.0f;
-	printf("step_size %f\n", step_size);
 	float x, y, z;
 	int index = 0;
 
