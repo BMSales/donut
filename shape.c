@@ -70,7 +70,7 @@ _shape* Shape_Create_Sphere(int point_limit, float radius){
 
 		theta = phi * i;
 
-		x = cos(theta) * radius_draw;
+		x = 2 * cos(theta) * radius_draw;
 		z = sin(theta) * radius_draw;
 
 		sphere->point[i][0] = x * radius;
@@ -81,4 +81,40 @@ _shape* Shape_Create_Sphere(int point_limit, float radius){
 	}
 
 	return sphere;
+}
+
+_shape* Shape_Create_Torus(int point_limit, float radius_1, float radius_2){
+	_shape* torus = Shape_Init();
+	float step_size = (360.0f / sqrt((float)point_limit)) * M_PI/180.0f;
+	printf("step_size %f\n", step_size);
+	float x, y, z;
+	int index = 0;
+
+	torus->point = (float**)calloc(point_limit, sizeof(float*));
+	for(int i = 0; i < point_limit; i++){
+		torus->point[i] = (float*)calloc(3, sizeof(float));
+	}
+
+	for(float phi = 0.0; phi < 2 * M_PI; phi += step_size){
+		for(float theta = 0.0; theta < 2 * M_PI && index < point_limit; theta += step_size){
+			x = radius_2 + radius_1 * cos(theta);
+			z = radius_1 * sin(theta);
+
+			torus->point[index][0] = x;
+			torus->point[index][2] = z;
+
+			/*printf("x: %f\n", torus->point[index][0]);*/
+			/*printf("y: %f\n", torus->point[index][1]);*/
+			/*printf("z: %f\n\n", torus->point[index][2]);*/
+
+			Point_Rotate_Z(torus->point[index], phi);
+
+			/*printf("x: %f\n", torus->point[index][0]);*/
+			/*printf("z: %f\n\n", torus->point[index][2]);*/
+			index++;
+			torus->number_of_points++;
+		}
+	}
+
+	return torus;
 }

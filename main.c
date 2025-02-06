@@ -18,17 +18,18 @@ int main(){
     ioctl(STDIN_FILENO, TIOCGWINSZ, &window);
 
     _canvas* canvas = Canvas_Init(window.ws_row, window.ws_col);
-    _shape* sphere = Shape_Create_Sphere(1000, 5.0);
+    _shape* torus = Shape_Create_Torus(5000, 5.0, 10.0);
 
     float center_x = 0.0;
     float center_y = 0.0;
-    float center_z = 30.0;
+    float center_z = 0.0;
 
     while(1){
-	Canvas_Draw_Shape(canvas, sphere, center_x, center_y, center_z);
+	Canvas_Draw_Shape(canvas, torus, center_x, center_y, center_z);
 	Canvas_Display(canvas);
 	usleep(16*1000);
 	system("clear");
+	center_z += 1.0;
     }
     /*usleep(16*1000);*/
     //system("clear");

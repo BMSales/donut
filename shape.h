@@ -12,3 +12,4 @@ void Point_Rotate_Z(float*, float);
 void Point_Offset(float*, float, float, float);
 
 _shape* Shape_Create_Sphere(int, float);
+_shape* Shape_Create_Torus(int, float, float);
